@@ -38,11 +38,8 @@
     ],
     "scripts": {
   "test": "react-scripts test"
-},
-
-"scripts": {
-  "test": "echo \"No tests\""
 }
+
 
   }
 }
