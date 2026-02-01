@@ -30,7 +30,8 @@ jobs:
 
       # 4️⃣ Run tests (skip if fails)
       - name: Run tests
-        run: npm test -- --watchAll=false || true
+        run: npm test -- --coverage --watchAll=false
+
 
       # 5️⃣ Build React app
       - name: Build project
