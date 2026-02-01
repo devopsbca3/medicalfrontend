@@ -1,31 +1,24 @@
-name: Frontend CI/CD
+name: Backend CI
 
-# Trigger CI on push to main branch
 on:
   push:
-    branches: [ main ]
 
 jobs:
-  build-deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout code
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
-      # Step 2: Setup Node.js
-      - uses: actions/setup-node@v3
+      - name: Setup Java
+        uses: actions/setup-java@v3
         with:
-          node-version: 18
+          distribution: temurin
+          java-version: 17
 
-      # Step 3: Install dependencies (safe even without package-lock.json)
-      - name: Install dependencies
-        run: npm install
+      - name: Give permission
+        run: chmod +x mvnw
 
-      # Step 4: Skip tests completely
-      - name: Skip tests
-        run: echo "Skipping tests"
-
-      # Step 5: Build project
       - name: Build
-        run: npm run build
+        run: ./mvnw clean install
