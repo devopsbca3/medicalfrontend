@@ -1,24 +1,34 @@
-name: Backend CI
+name: Frontend CI
 
 on:
   push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  build:
+  build-frontend:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup Java
-        uses: actions/setup-java@v3
+      - name: Setup Node
+        uses: actions/setup-node@v3
         with:
-          distribution: temurin
-          java-version: 17
+          node-version: '20'   # Node version must match local
 
-      - name: Give permission
-        run: chmod +x mvnw
+      - name: Clean npm cache
+        run: npm cache clean --force
+        working-directory: ./frontend
 
-      - name: Build
-        run: ./mvnw clean install
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./frontend
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: ./frontend
