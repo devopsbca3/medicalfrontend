@@ -18,12 +18,14 @@ jobs:
         with:
           node-version: 18
 
-      # Step 3: Install dependencies
-      - run: npm ci
+      # Step 3: Install dependencies (safe even without package-lock.json)
+      - name: Install dependencies
+        run: npm install
 
-      # ❌ Step 4: Tests removed (skip)
+      # Step 4: Skip tests completely
       - name: Skip tests
         run: echo "Skipping tests"
 
       # Step 5: Build project
-      - run: npm run build
+      - name: Build
+        run: npm run build
