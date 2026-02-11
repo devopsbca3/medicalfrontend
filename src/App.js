@@ -18,7 +18,7 @@ function App() {
   // 🔹 Load records
   const loadRecords = async () => {
     try {
-      const res = await fetch("https://medicalbackend-dg6o.onrender.com//8080/records");
+      const res = await fetch("https://medicalbackend-dg6o.onrender.com/records");
       const data = await res.json();
       const mapped = data.map((r) => ({
         record_id: r.id,
