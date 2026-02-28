@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 
-const API = "https://medicalbackend-dg6o.onrender.com/records"; // 🔥 replace with your backend URL
+
+// For local development use:
+ const API = "http://localhost:8080/records";
 
 function App() {
   const emptyForm = {
@@ -16,12 +18,15 @@ function App() {
 
   const [form, setForm] = useState(emptyForm);
   const [records, setRecords] = useState([]);
-  const [loading, setLoading] = useState(false); // 🔹 prevent multiple clicks
+  const [loading, setLoading] = useState(false);
 
-  // 🔹 Load records
+  // ✅ Load Records
   const loadRecords = async () => {
     try {
       const res = await fetch(API);
+
+      if (!res.ok) throw new Error("Failed to fetch records");
+
       const data = await res.json();
 
       const mapped = data.map((r) => ({
@@ -38,6 +43,7 @@ function App() {
       setRecords(mapped);
     } catch (err) {
       console.error("Fetch error:", err);
+      alert("Server may be sleeping. Refresh after 10 sec.");
     }
   };
 
@@ -48,10 +54,10 @@ function App() {
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
-  // 🔹 SAVE / UPDATE Record
+  // ✅ Save or Update Record
   const saveRecord = async () => {
     if (!form.patient_name) {
-      alert("Patient Name required");
+      alert("Patient Name is required");
       return;
     }
 
@@ -65,32 +71,33 @@ function App() {
       visitDate: form.visit_date,
     };
 
-    setLoading(true); // disable button
+    setLoading(true);
 
     try {
-      const response = await fetch(
-        form.record_id ? `${API}/${form.record_id}` : API,
-        {
-          method: form.record_id ? "PUT" : "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
-      );
+      const url = form.record_id ? `${API}/${form.record_id}` : API;
+      const method = form.record_id ? "PUT" : "POST";
 
-      if (!response.ok) throw new Error("Server not responding");
+      const response = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || "Server error");
+      }
 
       alert(form.record_id ? "Record Updated ✅" : "Record Added ✅");
 
       setForm(emptyForm);
-      await loadRecords(); // refresh table
+      await loadRecords();
     } catch (err) {
       console.error("Save error:", err);
-      alert(
-        "Server may be waking up. Please wait 10 sec and click again if failed."
-      );
+      alert("Backend waking up ☁ Please wait 10–20 sec and try again.");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false); // enable button
   };
 
   const editRecord = (r) => setForm(r);
@@ -99,7 +106,11 @@ function App() {
     if (!window.confirm("Delete this record?")) return;
 
     try {
-      await fetch(`${API}/${id}`, { method: "DELETE" });
+      const res = await fetch(`${API}/${id}`, { method: "DELETE" });
+
+      if (!res.ok) throw new Error("Delete failed");
+
+      alert("Record Deleted ❌");
       await loadRecords();
     } catch (err) {
       console.error(err);
@@ -112,7 +123,7 @@ function App() {
       <div style={styles.box}>
         <h2 style={styles.heading}>Medical Record Management</h2>
 
-        {/* Form */}
+        {/* FORM */}
         <div style={styles.grid}>
           <input
             name="patient_name"
@@ -175,7 +186,7 @@ function App() {
           </button>
         </div>
 
-        {/* Table */}
+        {/* TABLE */}
         <table style={styles.table}>
           <thead>
             <tr>
@@ -224,7 +235,7 @@ function App() {
   );
 }
 
-// 🔹 Styles
+// ✅ Styles
 const styles = {
   body: {
     fontFamily: "Arial",
@@ -235,12 +246,15 @@ const styles = {
   box: {
     background: "white",
     padding: "20px",
-    maxWidth: "900px",
+    maxWidth: "950px",
     margin: "auto",
     borderRadius: "8px",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+    boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
   },
-  heading: { textAlign: "center", marginBottom: "20px" },
+  heading: {
+    textAlign: "center",
+    marginBottom: "20px",
+  },
   grid: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
@@ -256,7 +270,11 @@ const styles = {
     borderRadius: "4px",
     fontWeight: "bold",
   },
-  table: { width: "100%", borderCollapse: "collapse", fontSize: "14px" },
+  table: {
+    width: "100%",
+    borderCollapse: "collapse",
+    fontSize: "14px",
+  },
   editBtn: {
     background: "#28a745",
     color: "white",
