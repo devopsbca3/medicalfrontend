@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 
 // For local development use:
- const API = "http://localhost:8080/records";
+ const API = "https://medicalbackend-1-gpf4.onrender.com/records";
 
 function App() {
   const emptyForm = {
