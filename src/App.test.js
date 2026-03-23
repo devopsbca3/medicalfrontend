@@ -1,10 +1,10 @@
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
-test('renders learn react link', () => {
+test('renders Medical Record Management heading', () => {
   render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+  const heading = screen.getByText(/Medical Record Management/i);
+  expect(heading).toBeInTheDocument();
 });
 test("basic test", () => {
   expect(true).toBe(true);
