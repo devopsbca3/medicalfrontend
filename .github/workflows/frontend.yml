@@ -4,39 +4,27 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout code
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-      # 2. Setup Node
-      - name: Setup Node
-        uses: actions/setup-node@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: '20'
 
-      # 3. Install dependencies
       - name: Install dependencies
         run: npm install
-        working-directory: medicalfrontend
 
-      # 4. Build project
-      - name: Build frontend
+      - name: Build
         run: npm run build
-        working-directory: medicalfrontend
 
-      # 5. Deploy to Azure Web App
       - name: Deploy to Azure
         uses: azure/webapps-deploy@v2
         with:
-          app-name: YOUR_APP_NAME   # 👈 Azure app name
+          app-name: YOUR_APP_NAME
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: medicalfrontend/build
+          package: build
