@@ -67,21 +67,26 @@ function App() {
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
-  // ✅ Save or Update Record
-  const saveRecord = async () => {
-    console.log("🔵 saveRecord clicked");
-    
-    if (!form.patient_name.trim()) {
-      alert("❌ Patient Name is required");
+  // ✅ Save or Update Record - SIMPLIFIED
+  const saveRecord = () => {
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.log("🔵 SAVE BUTTON CLICKED");
+    console.log("Form:", form);
+
+    // Validate
+    if (!form.patient_name || form.patient_name.trim() === "") {
+      console.warn("❌ Patient name is empty");
+      alert("❌ Patient Name is required!");
       return;
     }
 
-    console.log("📝 Form data:", form);
+    console.log("✅ Validation passed");
 
-    const newRecord = {
-      record_id: form.record_id || `rec_${Date.now()}`,
-      patient_name: form.patient_name,
-      age: form.age || 0,
+    // Create record
+    const record = {
+      record_id: form.record_id || `${Date.now()}`,
+      patient_name: form.patient_name.trim(),
+      age: form.age || "",
       gender: form.gender || "",
       contact_number: form.contact_number || "",
       doctor_name: form.doctor_name || "",
@@ -89,47 +94,52 @@ function App() {
       visit_date: form.visit_date || "",
     };
 
-    console.log("💾 New record to save:", newRecord);
+    console.log("📝 Record object:", record);
 
     try {
-      setLoading(true);
+      // 1. Get existing records from localStorage
+      const existing = localStorage.getItem("medicalRecords");
+      console.log("📦 Existing localStorage data:", existing);
 
-      // Get current records
-      const storageData = localStorage.getItem("medicalRecords");
-      let allRecords = storageData ? JSON.parse(storageData) : [];
-      console.log("📦 Current records from storage:", allRecords);
+      let allRecords = existing ? JSON.parse(existing) : [];
+      console.log("📦 Parsed records:", allRecords);
 
-      // Add or update
+      // 2. Add or update
       if (form.record_id) {
-        // Update existing
+        // Update existing record
         allRecords = allRecords.map((r) =>
-          r.record_id === form.record_id ? newRecord : r
+          r.record_id === form.record_id ? record : r
         );
-        console.log("✏️ Updated record");
+        console.log("✏️  Updated existing record");
       } else {
-        // Add new
-        allRecords.push(newRecord);
+        // Add new record
+        allRecords.push(record);
         console.log("✨ Added new record");
       }
 
-      // Save to localStorage
-      localStorage.setItem("medicalRecords", JSON.stringify(allRecords));
-      console.log("✅ Saved to localStorage");
-      console.log("📦 All records after save:", allRecords);
+      // 3. Save to localStorage
+      const jsonString = JSON.stringify(allRecords);
+      localStorage.setItem("medicalRecords", jsonString);
+      console.log("💾 Saved to localStorage");
+      console.log("📦 Final saved data:", jsonString);
 
-      // Update state
+      // 4. Update React state
       setRecords(allRecords);
-      setForm(emptyForm);
-      setLoading(false);
+      console.log("🔄 Updated React state with records:", allRecords);
 
-      // Show success
-      const msg = form.record_id ? "Record Updated ✅" : "Record Added ✅";
-      alert(msg);
-      console.log("✅ Alert shown:", msg);
-    } catch (err) {
-      console.error("❌ Error saving record:", err);
-      setLoading(false);
-      alert("❌ Error saving record: " + err.message);
+      // 5. Clear form
+      setForm(emptyForm);
+      console.log("🧹 Form cleared");
+
+      // 6. Show success
+      const message = form.record_id ? "Record Updated ✅" : "Record Added ✅";
+      console.log("✅ " + message);
+      alert(message);
+
+      console.log("━━━━━━━━━━━━━━━━━━━━━━━━");
+    } catch (error) {
+      console.error("❌ ERROR:", error);
+      alert("❌ Error: " + error.message);
     }
   };
 
