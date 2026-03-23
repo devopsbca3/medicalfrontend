@@ -25,7 +25,9 @@ export default function App() {
   };
 
   const saveRecord = () => {
-    console.log("🔵 saveRecord called, form.record_id:", form.record_id);
+    console.log("🔵 saveRecord called");
+    console.log("form.record_id:", form.record_id);
+    console.log("form.patient_name:", form.patient_name);
     
     if (!form.patient_name.trim()) {
       alert("❌ Patient Name is required!");
@@ -34,7 +36,7 @@ export default function App() {
 
     const newRecord = {
       record_id: form.record_id || Date.now().toString(),
-      patient_name: form.patient_name,
+      patient_name: form.patient_name.trim(),
       age: form.age,
       gender: form.gender,
       contact_number: form.contact_number,
@@ -43,30 +45,40 @@ export default function App() {
       visit_date: form.visit_date,
     };
 
-    console.log("📝 Record to save:", newRecord);
+    console.log("📝 newRecord:", newRecord);
+    console.log("Current records count:", records.length);
 
-    let updatedRecords;
+    let updatedRecords = [];
+    const isUpdate = form.record_id && records.some(r => r.record_id === form.record_id);
     
-    if (form.record_id) {
-      // UPDATE existing record
-      console.log("✏️ Updating existing record with ID:", form.record_id);
-      updatedRecords = records.map((r) =>
-        r.record_id === form.record_id ? newRecord : r
-      );
-      console.log("Updated records:", updatedRecords);
+    console.log("isUpdate:", isUpdate);
+
+    if (isUpdate) {
+      // UPDATE existing record - map over and replace
+      updatedRecords = records.map((r) => {
+        if (r.record_id === form.record_id) {
+          console.log("✏️ Replacing record:", r.record_id);
+          return newRecord;
+        }
+        return r;
+      });
+      console.log("Updated records count:", updatedRecords.length);
     } else {
       // ADD new record
-      console.log("✨ Adding new record");
       updatedRecords = [...records, newRecord];
+      console.log("✨ Added new record, total count:", updatedRecords.length);
     }
 
     localStorage.setItem("medicalRecords", JSON.stringify(updatedRecords));
     setRecords(updatedRecords);
     setForm(emptyForm);
 
-    const message = form.record_id ? "Record Updated ✅" : "Record Added ✅";
-    alert(message);
-    console.log(message);
+    // Show alert BEFORE state updates complete
+    if (isUpdate) {
+      alert("✅ Record Updated Successfully!");
+    } else {
+      alert("✅ Record Added Successfully!");
+    }
   };
 
   const editRecord = (r) => {
@@ -75,10 +87,10 @@ export default function App() {
   };
 
   const deleteRecord = (id) => {
-    console.log("🗑️ Deleting record with ID:", id);
+    const confirmed = window.confirm("❓ Are you sure you want to delete this record?");
     
-    if (!window.confirm("Are you sure you want to delete this record? ⚠️")) {
-      console.log("Delete cancelled");
+    if (!confirmed) {
+      console.log("Delete cancelled by user");
       return;
     }
 
@@ -86,8 +98,8 @@ export default function App() {
     localStorage.setItem("medicalRecords", JSON.stringify(filtered));
     setRecords(filtered);
     
-    alert("Record Deleted ✅");
-    console.log("Record deleted successfully");
+    alert("✅ Record Deleted Successfully!");
+    console.log("🗑️ Record deleted successfully");
   };
 
   return (
@@ -98,14 +110,21 @@ export default function App() {
         <div style={styles.form}>
           <input style={styles.input} name="patient_name" placeholder="Patient Name" value={form.patient_name} onChange={handleChange} />
           <input style={styles.input} name="age" placeholder="Age" value={form.age} onChange={handleChange} />
-          <input style={styles.input} name="gender" placeholder="Gender" value={form.gender} onChange={handleChange} />
+          
+          <select style={styles.input} name="gender" value={form.gender} onChange={handleChange}>
+            <option value="">Select Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+          
           <input style={styles.input} name="contact_number" placeholder="Contact Number" value={form.contact_number} onChange={handleChange} />
           <input style={styles.input} name="doctor_name" placeholder="Doctor Name" value={form.doctor_name} onChange={handleChange} />
           <input style={styles.input} name="diagnosis" placeholder="Diagnosis" value={form.diagnosis} onChange={handleChange} />
           <input style={styles.input} name="visit_date" type="date" value={form.visit_date} onChange={handleChange} />
 
           <button style={styles.button} onClick={saveRecord}>
-            {form.record_id ? "Update Record" : "Save Record"}
+            {form.record_id ? "✏️ Update Record" : "💾 Save Record"}
           </button>
         </div>
 
