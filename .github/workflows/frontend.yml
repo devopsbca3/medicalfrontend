@@ -24,14 +24,14 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # 4. Build project
+      # 4. Build React app
       - name: Build frontend
         run: npm run build
 
-      # 5. Deploy to Azure (NO LOGIN NEEDED)
+      # 5. Deploy to Azure Web App
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
         with:
-          app-name: YOUR_APP_NAME   # 👈 replace this
+          app-name: YOUR_APP_NAME   # 👈 replace with your Azure app name
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: build
