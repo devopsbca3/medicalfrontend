@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 
-
-// For local development use:
- const API = "http://localhost:8080/records";
+// For production (Azure) use localStorage - no backend needed
+// For local development with backend use: "http://localhost:8080/records"
+const USE_LOCALSTORAGE = true;
+const API = "http://localhost:8080/records";
 
 function App() {
   const emptyForm = {
@@ -20,30 +21,42 @@ function App() {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // ✅ Load Records
+  // ✅ Load Records from localStorage or API
   const loadRecords = async () => {
     try {
-      const res = await fetch(API);
+      if (USE_LOCALSTORAGE) {
+        // Load from localStorage
+        const saved = localStorage.getItem("medicalRecords");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          setRecords(parsed);
+          console.log("✅ Loaded from localStorage:", parsed);
+        }
+      } else {
+        // Load from backend API
+        const res = await fetch(API);
 
-      if (!res.ok) throw new Error("Failed to fetch records");
+        if (!res.ok) throw new Error("Failed to fetch records");
 
-      const data = await res.json();
+        const data = await res.json();
 
-      const mapped = data.map((r) => ({
-        record_id: r.id,
-        patient_name: r.patientName || "",
-        age: r.age || "",
-        gender: r.gender || "",
-        contact_number: r.contactNumber || "",
-        doctor_name: r.doctorName || "",
-        diagnosis: r.diagnosis || "",
-        visit_date: r.visitDate || "",
-      }));
+        const mapped = data.map((r) => ({
+          record_id: r.id,
+          patient_name: r.patientName || "",
+          age: r.age || "",
+          gender: r.gender || "",
+          contact_number: r.contactNumber || "",
+          doctor_name: r.doctorName || "",
+          diagnosis: r.diagnosis || "",
+          visit_date: r.visitDate || "",
+        }));
 
-      setRecords(mapped);
+        setRecords(mapped);
+      }
     } catch (err) {
       console.error("Fetch error:", err);
-      alert("Server may be sleeping. Refresh after 10 sec.");
+      // Fallback to empty records
+      setRecords([]);
     }
   };
 
@@ -62,39 +75,61 @@ function App() {
     }
 
     const payload = {
-      patientName: form.patient_name,
+      record_id: form.record_id || Date.now().toString(),
+      patient_name: form.patient_name,
       age: Number(form.age),
       gender: form.gender,
-      contactNumber: form.contact_number,
-      doctorName: form.doctor_name,
+      contact_number: form.contact_number,
+      doctor_name: form.doctor_name,
       diagnosis: form.diagnosis,
-      visitDate: form.visit_date,
+      visit_date: form.visit_date,
     };
 
     setLoading(true);
 
     try {
-      const url = form.record_id ? `${API}/${form.record_id}` : API;
-      const method = form.record_id ? "PUT" : "POST";
+      if (USE_LOCALSTORAGE) {
+        // Save to localStorage
+        let allRecords = records;
 
-      const response = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+        if (form.record_id) {
+          // Update existing
+          allRecords = records.map((r) =>
+            r.record_id === form.record_id ? payload : r
+          );
+        } else {
+          // Add new
+          allRecords = [...records, payload];
+        }
 
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(text || "Server error");
+        localStorage.setItem("medicalRecords", JSON.stringify(allRecords));
+        setRecords(allRecords);
+        alert(form.record_id ? "Record Updated ✅" : "Record Added ✅");
+        setForm(emptyForm);
+      } else {
+        // Save to backend API
+        const url = form.record_id ? `${API}/${form.record_id}` : API;
+        const method = form.record_id ? "PUT" : "POST";
+
+        const response = await fetch(url, {
+          method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(text || "Server error");
+        }
+
+        alert(form.record_id ? "Record Updated ✅" : "Record Added ✅");
+
+        setForm(emptyForm);
+        await loadRecords();
       }
-
-      alert(form.record_id ? "Record Updated ✅" : "Record Added ✅");
-
-      setForm(emptyForm);
-      await loadRecords();
     } catch (err) {
       console.error("Save error:", err);
-      alert("Backend waking up ☁ Please wait 10–20 sec and try again.");
+      alert("Error saving record. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -106,12 +141,21 @@ function App() {
     if (!window.confirm("Delete this record?")) return;
 
     try {
-      const res = await fetch(`${API}/${id}`, { method: "DELETE" });
+      if (USE_LOCALSTORAGE) {
+        // Delete from localStorage
+        const filtered = records.filter((r) => r.record_id !== id);
+        localStorage.setItem("medicalRecords", JSON.stringify(filtered));
+        setRecords(filtered);
+        alert("Record Deleted ✅");
+      } else {
+        // Delete from backend API
+        const res = await fetch(`${API}/${id}`, { method: "DELETE" });
 
-      if (!res.ok) throw new Error("Delete failed");
+        if (!res.ok) throw new Error("Delete failed");
 
-      alert("Record Deleted ❌");
-      await loadRecords();
+        alert("Record Deleted ✅");
+        await loadRecords();
+      }
     } catch (err) {
       console.error(err);
       alert("Delete failed ❌");
