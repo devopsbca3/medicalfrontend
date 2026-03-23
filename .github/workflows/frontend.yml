@@ -24,9 +24,19 @@ jobs:
       - name: Build frontend
         run: npm run build
 
-      - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v2
+      - name: Zip build folder
+        run: cd build && zip -r ../build.zip . && cd ..
+
+      - name: Azure Login
+        uses: azure/login@v1
         with:
-          app-name: medicalfrontend   # ✅ correct
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: build
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy to Azure Web App
+        run: |
+          az webapp deployment source config-zip \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --name medicalfrontend \
+            --src build.zip
