@@ -69,80 +69,67 @@ function App() {
 
   // ✅ Save or Update Record
   const saveRecord = async () => {
-    console.log("✅ Save button clicked");
-    console.log("Form data:", form);
+    console.log("🔵 saveRecord clicked");
     
-    if (!form.patient_name) {
-      alert("Patient Name is required");
+    if (!form.patient_name.trim()) {
+      alert("❌ Patient Name is required");
       return;
     }
 
-    const payload = {
-      record_id: form.record_id || Date.now().toString(),
+    console.log("📝 Form data:", form);
+
+    const newRecord = {
+      record_id: form.record_id || `rec_${Date.now()}`,
       patient_name: form.patient_name,
-      age: Number(form.age),
-      gender: form.gender,
-      contact_number: form.contact_number,
-      doctor_name: form.doctor_name,
-      diagnosis: form.diagnosis,
-      visit_date: form.visit_date,
+      age: form.age || 0,
+      gender: form.gender || "",
+      contact_number: form.contact_number || "",
+      doctor_name: form.doctor_name || "",
+      diagnosis: form.diagnosis || "",
+      visit_date: form.visit_date || "",
     };
 
-    console.log("Payload to save:", payload);
-    setLoading(true);
+    console.log("💾 New record to save:", newRecord);
 
     try {
-      if (USE_LOCALSTORAGE) {
-        console.log("💾 Saving to localStorage...");
-        // Save to localStorage
-        let allRecords = [...records]; // Create a new array copy
+      setLoading(true);
 
-        if (form.record_id) {
-          console.log("Updating existing record:", form.record_id);
-          // Update existing
-          allRecords = allRecords.map((r) =>
-            r.record_id === form.record_id ? payload : r
-          );
-        } else {
-          console.log("Adding new record");
-          // Add new
-          allRecords = [...allRecords, payload];
-        }
+      // Get current records
+      const storageData = localStorage.getItem("medicalRecords");
+      let allRecords = storageData ? JSON.parse(storageData) : [];
+      console.log("📦 Current records from storage:", allRecords);
 
-        console.log("All records before save:", allRecords);
-        localStorage.setItem("medicalRecords", JSON.stringify(allRecords));
-        console.log("✅ Saved to localStorage");
-        
-        setRecords(allRecords);
-        setLoading(false);
-        alert(form.record_id ? "Record Updated ✅" : "Record Added ✅");
-        setForm(emptyForm);
+      // Add or update
+      if (form.record_id) {
+        // Update existing
+        allRecords = allRecords.map((r) =>
+          r.record_id === form.record_id ? newRecord : r
+        );
+        console.log("✏️ Updated record");
       } else {
-        // Save to backend API
-        const url = form.record_id ? `${API}/${form.record_id}` : API;
-        const method = form.record_id ? "PUT" : "POST";
-
-        const response = await fetch(url, {
-          method,
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-
-        if (!response.ok) {
-          const text = await response.text();
-          throw new Error(text || "Server error");
-        }
-
-        alert(form.record_id ? "Record Updated ✅" : "Record Added ✅");
-
-        setForm(emptyForm);
-        await loadRecords();
-        setLoading(false);
+        // Add new
+        allRecords.push(newRecord);
+        console.log("✨ Added new record");
       }
-    } catch (err) {
-      console.error("❌ Save error:", err);
-      alert("Error saving record. Please try again.");
+
+      // Save to localStorage
+      localStorage.setItem("medicalRecords", JSON.stringify(allRecords));
+      console.log("✅ Saved to localStorage");
+      console.log("📦 All records after save:", allRecords);
+
+      // Update state
+      setRecords(allRecords);
+      setForm(emptyForm);
       setLoading(false);
+
+      // Show success
+      const msg = form.record_id ? "Record Updated ✅" : "Record Added ✅";
+      alert(msg);
+      console.log("✅ Alert shown:", msg);
+    } catch (err) {
+      console.error("❌ Error saving record:", err);
+      setLoading(false);
+      alert("❌ Error saving record: " + err.message);
     }
   };
 
