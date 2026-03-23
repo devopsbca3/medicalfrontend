@@ -69,6 +69,9 @@ function App() {
 
   // ✅ Save or Update Record
   const saveRecord = async () => {
+    console.log("✅ Save button clicked");
+    console.log("Form data:", form);
+    
     if (!form.patient_name) {
       alert("Patient Name is required");
       return;
@@ -85,25 +88,33 @@ function App() {
       visit_date: form.visit_date,
     };
 
+    console.log("Payload to save:", payload);
     setLoading(true);
 
     try {
       if (USE_LOCALSTORAGE) {
+        console.log("💾 Saving to localStorage...");
         // Save to localStorage
-        let allRecords = records;
+        let allRecords = [...records]; // Create a new array copy
 
         if (form.record_id) {
+          console.log("Updating existing record:", form.record_id);
           // Update existing
-          allRecords = records.map((r) =>
+          allRecords = allRecords.map((r) =>
             r.record_id === form.record_id ? payload : r
           );
         } else {
+          console.log("Adding new record");
           // Add new
-          allRecords = [...records, payload];
+          allRecords = [...allRecords, payload];
         }
 
+        console.log("All records before save:", allRecords);
         localStorage.setItem("medicalRecords", JSON.stringify(allRecords));
+        console.log("✅ Saved to localStorage");
+        
         setRecords(allRecords);
+        setLoading(false);
         alert(form.record_id ? "Record Updated ✅" : "Record Added ✅");
         setForm(emptyForm);
       } else {
@@ -126,11 +137,11 @@ function App() {
 
         setForm(emptyForm);
         await loadRecords();
+        setLoading(false);
       }
     } catch (err) {
-      console.error("Save error:", err);
+      console.error("❌ Save error:", err);
       alert("Error saving record. Please try again.");
-    } finally {
       setLoading(false);
     }
   };
