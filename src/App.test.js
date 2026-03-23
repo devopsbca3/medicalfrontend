@@ -3,7 +3,7 @@ import App from './App';
 
 test('renders Medical Record Management heading', () => {
   render(<App />);
-  const heading = screen.getByRole(/Medical Record Management/i);
+  const heading = screen.getByText(/Medical Record Management/i);
   expect(heading).toBeInTheDocument();
 });
 test("basic test", () => {
