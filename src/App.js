@@ -123,7 +123,6 @@ export default function App() {
             onChange={handleChange}
           />
 
-          {/* 🔥 DOCTOR DROPDOWN */}
           <select
             style={styles.input}
             name="doctor_name"
@@ -168,9 +167,11 @@ export default function App() {
               <th>Age</th>
               <th>Gender</th>
               <th>Doctor</th>
+              <th>Diagnosis</th>
               <th>Actions</th>
             </tr>
           </thead>
+
           <tbody>
             {records.map((r) => (
               <tr key={r.record_id}>
@@ -179,6 +180,8 @@ export default function App() {
                 <td>{r.age}</td>
                 <td>{r.gender}</td>
                 <td>{r.doctor_name}</td>
+                <td>{r.diagnosis}</td>
+
                 <td>
                   <button
                     style={styles.editBtn}
