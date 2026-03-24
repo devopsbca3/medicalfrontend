@@ -166,6 +166,7 @@ export default function App() {
               <th>Name</th>
               <th>Age</th>
               <th>Gender</th>
+              <th>Contact</th>
               <th>Doctor</th>
               <th>Diagnosis</th>
               <th>Actions</th>
@@ -179,6 +180,7 @@ export default function App() {
                 <td>{r.patient_name}</td>
                 <td>{r.age}</td>
                 <td>{r.gender}</td>
+                <td>{r.contact_number}</td>
                 <td>{r.doctor_name}</td>
                 <td>{r.diagnosis}</td>
 
